@@ -1,6 +1,6 @@
 from examples.examples_models import modelCTMC2, modelCTMC3, modelCTMC_random
-from src.learning.BW_CTMC_Composition import BW_CTMC_Composition
-from src.learning.BW_CTMC import BW_CTMC
+from learning.MM_CTMC_Composition import MM_CTMC_Composition
+from learning.MM_CTMC import MM_CTMC
 from src.models.CTMC import parallelComposition
 from src.tools import generateSet, saveSet, loadSet
 from datetime import datetime, timedelta
@@ -38,7 +38,7 @@ def generateRandomModels(disjoint=False):
         obs = [['r1','g1','b1'],['r2','g2','b2']]
     return modelCTMC_random(4,obs[0],1,5,False), modelCTMC_random(4,obs[1],1,5,False)
 
-NB_EXPERIMENTS = 40
+NB_EXPERIMENTS = 100
 v=True
 
 folder = "experiment_output/"
@@ -72,7 +72,7 @@ original1_disjoint = modelCTMC2('1')
 original2_disjoint = modelCTMC3('2')
 original_model_disjoint = parallelComposition(original1_disjoint,original2_disjoint)
 timed_training_set_disjoint = generateSet(original_model_disjoint,1000,10,timed=True)
-saveSet(timed_training_set_disjoint,folder+"timed_training_set_disjoint.txt')
+saveSet(timed_training_set_disjoint,folder+"timed_training_set_disjoint.txt")
 timed_test_set_composition_disjoint, timed_test_set_1_disjoint, timed_test_set_2_disjoint = generateTestSetsDisjoint()
 saveSet(timed_test_set_composition_disjoint,folder+"timed_test_set_composition_disjoint.txt")
 saveSet(timed_test_set_1_disjoint,folder+"timed_test_set_1_disjoint.txt")
@@ -93,7 +93,7 @@ for exp in range(1,NB_EXPERIMENTS+1):
 
     print("Composition")
     s = datetime.now()
-    timed_model1, timed_model2 = BW_CTMC_Composition(random1,random2).learn(timed_training_set,output_file=folder+"compo_"+str(exp),verbose=v)
+    timed_model1, timed_model2 = MM_CTMC_Composition(random1,random2).learn(timed_training_set,output_file=folder+"compo_"+str(exp),verbose=v)
     s = (datetime.now()-s).total_seconds()
     timed_model = parallelComposition(timed_model1,timed_model2)
     ll = abs(quality_original-timed_model.logLikelihood(timed_test_set_composition))
@@ -103,14 +103,14 @@ for exp in range(1,NB_EXPERIMENTS+1):
     
     print("Simple")
     s = datetime.now()
-    simple = BW_CTMC(parallelComposition(random1,random2)).learn(timed_training_set,output_file=folder+"simple_"+str(exp)+".txt",verbose=v)
+    simple = MM_CTMC(parallelComposition(random1,random2)).learn(timed_training_set,output_file=folder+"simple_"+str(exp)+".txt",verbose=v)
     s = (datetime.now()-s).total_seconds()
     ll = abs(quality_original-simple.logLikelihood(timed_test_set_composition))
     dots_simple_compo.append((s,ll))
     
     print("Model1")
     s = datetime.now()
-    untimed_model1, _ = BW_CTMC_Composition(random1,original2).learn(untimed_training_set,output_file=folder+"model1_"+str(exp),to_update=1,verbose=v)
+    untimed_model1, _ = MM_CTMC_Composition(random1,original2).learn(untimed_training_set,output_file=folder+"model1_"+str(exp),to_update=1,verbose=v)
     s = (datetime.now()-s).total_seconds()
     ll = abs(quality_original-parallelComposition(untimed_model1,_).logLikelihood(timed_test_set_composition))
     dots_model1_compo.append((s,ll))
@@ -120,7 +120,7 @@ for exp in range(1,NB_EXPERIMENTS+1):
     print("Disjoints")
     random1, random2 = generateRandomModels(disjoint=True)
     s = datetime.now()
-    timed_model1, timed_model2 = BW_CTMC_Composition(random1,random2).learn(timed_training_set_disjoint,verbose=True)
+    timed_model1, timed_model2 = MM_CTMC_Composition(random1,random2).learn(timed_training_set_disjoint,verbose=True)
     s = (datetime.now()-s).total_seconds()
     timed_model = parallelComposition(timed_model1,timed_model2)
     ll = abs(quality_original_disjoint-timed_model.logLikelihood(timed_test_set_composition_disjoint))
@@ -146,7 +146,7 @@ f.write(str(dots_model2_disjoint)+'\n')
 f.close()
 
 
-f = open("summary.txt",'r')
+f = open(folder+"summary.txt",'r')
 dots_compo_compo     = literal_eval(f.readline()[:-1])
 dots_compo_model1    = literal_eval(f.readline()[:-1])
 dots_simple_compo    = literal_eval(f.readline()[:-1])

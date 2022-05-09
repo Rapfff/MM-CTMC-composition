@@ -5,8 +5,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 from numpy.random import exponential
 from ast import literal_eval
-from tools import resolveRandom, correct_proba
-from models.MC import MC, MC_state
+from tools import resolveRandom
 from math import exp, log
 
 
@@ -143,17 +142,31 @@ class CTMC:
 				alpha_matrix[s].append(summ)
 		res = sum([alpha_matrix[s][-1] for s in range(len(self.states))])
 		return res
+	
+	def proba_one_nontimed_seq(self,sequence) -> float:
+		alpha_matrix = [[self.initial_state[i]] for i in range(len(self.states))]
+		for k in range(len(sequence)):
+			for s in range(len(self.states)):
+				summ = 0.0
+				for ss in range(len(self.states)):
+					summ += alpha_matrix[ss][k]*self.tau(ss,s,sequence[k])
+				alpha_matrix[s].append(summ)
+		res = sum([alpha_matrix[s][-1] for s in range(len(self.states))])
+		return res
 
 	def logLikelihood(self,traces) -> float:
 		if type(traces[0][0][0]) == str: # non-timed traces
-			res = self.toMC().logLikelihood(traces)
-		else: # timed traces
-			res = 0.0
-			for sequence, times in zip(traces[0],traces[1]):
+			timed = False
+		else:
+			timed = True
+		res = 0.0
+		for sequence, times in zip(traces[0],traces[1]):
+			if timed:
 				proba_seq = self.proba_one_timed_seq(sequence)
-				res += log(proba_seq)*times
+			else:
+				proba_seq = self.proba_one_nontimed_seq(sequence)
+			res += log(proba_seq)*times
 		return res/sum(traces[1])
-
 
 	def pprint(self) -> None:
 		print(self.name)
@@ -184,23 +197,6 @@ class CTMC:
 		for s in self.states:
 			f.write(str(s))
 		f.close()
-
-	def toMC(self, name: str="unknown_MC") -> MC:
-		new_states = []
-
-		for i in range(len(self.states)):
-			s = self.states[i]
-			den = sum(s.lambda_matrix[0]) 
-			p = [s.lambda_matrix[0][j]/den for j in range(len(s.lambda_matrix[0]))]
-			p = correct_proba(p)
-			ss = s.lambda_matrix[1]
-			o = s.lambda_matrix[2]
-
-			new_states.append(MC_state([p,ss,o]))
-
-		return MC(new_states,self.initial_state,name)
-
-
 
 def loadCTMC(file_path: str) -> CTMC:
 	"""
