@@ -41,7 +41,7 @@ def generateRandomModels(disjoint=False):
 NB_EXPERIMENTS = 40
 v=True
 
-folder = "experiment/CTMC_composition/output/"
+folder = "experiment_output/"
 
 dots_compo_compo     = []
 dots_compo_model1    = []
@@ -55,12 +55,12 @@ dots_model2_disjoint = []
 original1 = modelCTMC2()
 original2 = modelCTMC3()
 original_model = parallelComposition(original1,original2)
-#timed_training_set, untimed_training_set = generateTrainingSets(1000,10)
-#saveSet(timed_training_set,folder+"timed_training_set.txt")
-#saveSet(untimed_training_set,folder+"untimed_training_set.txt")
-#timed_test_set_composition, timed_test_set_1 = generateTestSets()
-#saveSet(timed_test_set_composition,folder+"timed_test_set_composition.txt")
-#saveSet(timed_test_set_1,folder+"timed_test_set_1.txt")
+timed_training_set, untimed_training_set = generateTrainingSets(1000,10)
+saveSet(timed_training_set,folder+"timed_training_set.txt")
+saveSet(untimed_training_set,folder+"untimed_training_set.txt")
+timed_test_set_composition, timed_test_set_1 = generateTestSets()
+saveSet(timed_test_set_composition,folder+"timed_test_set_composition.txt")
+saveSet(timed_test_set_1,folder+"timed_test_set_1.txt")
 timed_training_set = loadSet(folder+"timed_training_set.txt")
 untimed_training_set = loadSet(folder+"untimed_training_set.txt")
 timed_test_set_composition = loadSet(folder+"timed_test_set_composition.txt")
@@ -71,12 +71,12 @@ quality_original1= original1.logLikelihood(timed_test_set_1)
 original1_disjoint = modelCTMC2('1')
 original2_disjoint = modelCTMC3('2')
 original_model_disjoint = parallelComposition(original1_disjoint,original2_disjoint)
-#timed_training_set_disjoint = generateSet(original_model_disjoint,1000,10,timed=True)
-#saveSet(timed_training_set_disjoint,folder+"timed_training_set_disjoint.txt')
-#timed_test_set_composition_disjoint, timed_test_set_1_disjoint, timed_test_set_2_disjoint = generateTestSetsDisjoint()
-#saveSet(timed_test_set_composition_disjoint,folder+"timed_test_set_composition_disjoint.txt")
-#saveSet(timed_test_set_1_disjoint,folder+"timed_test_set_1_disjoint.txt")
-#saveSet(timed_test_set_2_disjoint,folder+"timed_test_set_2_disjoint.txt")
+timed_training_set_disjoint = generateSet(original_model_disjoint,1000,10,timed=True)
+saveSet(timed_training_set_disjoint,folder+"timed_training_set_disjoint.txt')
+timed_test_set_composition_disjoint, timed_test_set_1_disjoint, timed_test_set_2_disjoint = generateTestSetsDisjoint()
+saveSet(timed_test_set_composition_disjoint,folder+"timed_test_set_composition_disjoint.txt")
+saveSet(timed_test_set_1_disjoint,folder+"timed_test_set_1_disjoint.txt")
+saveSet(timed_test_set_2_disjoint,folder+"timed_test_set_2_disjoint.txt")
 timed_training_set_disjoint = loadSet(folder+"timed_training_set_disjoint.txt")
 timed_test_set_composition_disjoint = loadSet(folder+"timed_test_set_composition_disjoint.txt")
 timed_test_set_1_disjoint = loadSet(folder+"timed_test_set_1_disjoint.txt")
