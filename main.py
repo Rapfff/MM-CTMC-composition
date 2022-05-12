@@ -52,6 +52,7 @@ dots_model_disjoint  = []
 dots_model1_disjoint = []
 dots_model2_disjoint = []
 
+# TRAINING/TEST SET GENERATION
 original1 = modelCTMC2()
 original2 = modelCTMC3()
 original_model = parallelComposition(original1,original2)
@@ -68,6 +69,7 @@ timed_test_set_1 = loadSet(folder+"timed_test_set_1.txt")
 quality_original = original_model.logLikelihood(timed_test_set_composition)
 quality_original1= original1.logLikelihood(timed_test_set_1)
 
+# TRAINING/TEST SET GENERATION for DISJOINT MODELS
 original1_disjoint = modelCTMC2('1')
 original2_disjoint = modelCTMC3('2')
 original_model_disjoint = parallelComposition(original1_disjoint,original2_disjoint)
@@ -90,7 +92,8 @@ for exp in range(1,NB_EXPERIMENTS+1):
     start_exp = datetime.now()
     print("\nExperiment",exp,'/',NB_EXPERIMENTS,':')
     random1, random2 = generateRandomModels()
-
+    #-----------------------------------------------------
+    #-----------------------------------------------------
     print("Composition")
     s = datetime.now()
     timed_model1, timed_model2 = MM_CTMC_Composition(random1,random2).learn(timed_training_set,output_file=folder+"compo_"+str(exp),verbose=v)
@@ -100,14 +103,14 @@ for exp in range(1,NB_EXPERIMENTS+1):
     dots_compo_compo.append((s,ll))
     ll = min(abs(quality_original1-timed_model1.logLikelihood(timed_test_set_1)),abs(quality_original1-timed_model2.logLikelihood(timed_test_set_1)))
     dots_compo_model1.append((s,ll))
-    
+    #-----------------------------------------------------
     print("Simple")
     s = datetime.now()
     simple = MM_CTMC(parallelComposition(random1,random2)).learn(timed_training_set,output_file=folder+"simple_"+str(exp)+".txt",verbose=v)
     s = (datetime.now()-s).total_seconds()
     ll = abs(quality_original-simple.logLikelihood(timed_test_set_composition))
     dots_simple_compo.append((s,ll))
-    
+    #-----------------------------------------------------
     print("Model1")
     s = datetime.now()
     untimed_model1, _ = MM_CTMC_Composition(random1,original2).learn(untimed_training_set,output_file=folder+"model1_"+str(exp),to_update=1,verbose=v)
@@ -116,7 +119,7 @@ for exp in range(1,NB_EXPERIMENTS+1):
     dots_model1_compo.append((s,ll))
     ll = abs(quality_original1-untimed_model1.logLikelihood(timed_test_set_1))
     dots_model1_model1.append((s,ll))
-
+    #-----------------------------------------------------
     print("Disjoints")
     random1, random2 = generateRandomModels(disjoint=True)
     s = datetime.now()
@@ -129,11 +132,12 @@ for exp in range(1,NB_EXPERIMENTS+1):
     dots_model1_disjoint.append((s,ll))
     ll = abs(quality_original2_disjoint-timed_model2.logLikelihood(timed_test_set_2_disjoint))
     dots_model2_disjoint.append((s,ll))
-
-
+    #-----------------------------------------------------
+    #-----------------------------------------------------
     duration_tot += datetime.now()-start_exp
     print("Expected ETA:",datetime.now()+(NB_EXPERIMENTS-exp)*duration_tot/exp)
 
+# SAVING THE RESULTS
 f = open(folder+"summary.txt",'w')
 f.write(str(dots_compo_compo)    +'\n')
 f.write(str(dots_compo_model1)   +'\n')
@@ -145,7 +149,7 @@ f.write(str(dots_model1_disjoint)+'\n')
 f.write(str(dots_model2_disjoint)+'\n')
 f.close()
 
-
+# LOADING THE RESULTS
 f = open(folder+"summary.txt",'r')
 dots_compo_compo     = literal_eval(f.readline()[:-1])
 dots_compo_model1    = literal_eval(f.readline()[:-1])
@@ -157,6 +161,7 @@ dots_model1_disjoint = literal_eval(f.readline()[:-1])
 dots_model2_disjoint = literal_eval(f.readline()[:-1])
 f.close()
 
+# FIRST PLOT
 fig, ax = plt.subplots(figsize=(5,5))
 ax.scatter([i[0] for i in dots_simple_compo], [i[1] for i in dots_simple_compo], c='g', alpha=0.5, label="Exp. 1: learning U||V")
 ax.scatter([i[0] for i in dots_compo_compo],  [i[1] for i in dots_compo_compo],  c='r', alpha=0.5, label="Exp. 2: learning U and V")
@@ -166,12 +171,14 @@ ax.set_ylabel("Mean absolute error")
 ax.legend()
 plt.show()
 
+# SECOND PLOT
 fig, ax = plt.subplots(figsize=(5,5))
 ax.boxplot([[i[1] for i in dots_model_disjoint],[i[1] for i in dots_model2_disjoint],[i[1] for i in dots_model1_disjoint]])
 ax.set_xticklabels(["U'||V'","U'","V'"])
 ax.set_ylabel("Mean absolute error")
 plt.show()
 
+# THIRD PLOT
 fig, ax = plt.subplots(figsize=(5,5))
 ax.boxplot([[i[1] for i in dots_model_disjoint],[i[1] for i in dots_model1_model1]])
 ax.set_xticklabels(["U||V'","V'"])
